@@ -8,26 +8,20 @@
 # #### 步骤
 # 1）数据准备    
 # * 准备好的大众点评商家数据为：“大众点评商家数据.csv”, 截取15家最热门的商家评论数据“大众点评评论数据.xlsx”，可直接使用。  
-# 
+
 # 2）创建数据表&数据清洗    
 # * 明确各字段含义，初步探索数据类型及缺失值情况，使用pandas对缺失值进行合适的处理；    
 # * 将评分数据拆分成“口味”、“环境”和“服务”三类；  
-# 
+
 # 3）数据分析    
 # * 对大众点评店家数据的分类、评分、价格、评论数等特征进行可视化分析，包括但不限于大小比较，构成情况分析；
 # * 以商家级别为分析目标，通过构建多元回归模型，分析影响商家级别的各因素；
 # * 通过主成分分析对回归分析结果进行降维；
 # * 利用主题模型，对所有的评论数据进行文本分析，探索顾客偏好及口碑；
-# 
-# 
-# 
 
 # ## 1.数据预处理
 
 # #### 1.1 加载数据
-
-# In[1]:
-
 
 # 导入模块
 import pandas as pd
@@ -52,103 +46,39 @@ df1=pd.read_csv(r'D:\大众点评商家数据1.csv',encoding='utf-8',engine='pyt
 dianping=pd.read_excel(r'D:\大众点评评论数据.xlsx')
 df2=pd.read_csv(r'D:\大众点评商家数据2.csv',encoding='utf-8',engine='python')
 
-
-# In[2]:
-
-
 df1.info()
 
-
-# In[3]:
-
-
 df2.info()
-
-
-# In[59]:
-
 
 # 查看数据
 dianping.info()
 
-
-# In[77]:
-
-
 dianping.columns
 
-
-# In[58]:
-
-
 dianping.iloc[0]['评论.1']
-
-
-# In[6]:
-
 
 # 如果存在 Unnamed: 0 数据列则删除该列数据
 df1=df1.drop(columns=['Unnamed: 0'])
 
-
-# In[7]:
-
-
 # 加载商家数据2
 dianping['shopname'].unique()
-
-
-# In[8]:
-
 
 # 如果存在 Unnamed: 22 数据列则删除该列数据
 df2=df2.drop(columns=[ 'Unnamed: 22'])
 
-
-# In[9]:
-
-
 len(df1['商家名(name)'].unique())
-
-
-# In[10]:
-
 
 # 合并数据表
 
-
-# In[11]:
-
-
 datamer = pd.merge(df1,df2,on ='商家Id(sid)')
-
-
-# In[78]:
-
 
 datamer.info()
 
-
-# In[12]:
-
-
 #data = pd.merge(dianping,df,left_on = 'shopname',right_on ='商家名(name)',how = "right")
-
-
-# In[13]:
-
 
 datamer.columns
 
-
-# In[14]:
-
-
 # 对数据进行重命名
-
-
-# In[15]:
-
 
 datamer.columns = ['爬取链接', '商家ID', '商家名', '省份', '城市',
        '区域', '地址', '纬度', '经度',
@@ -157,39 +87,15 @@ datamer.columns = ['爬取链接', '商家ID', '商家名', '省份', '城市',
        '评分', '评价标签', '商品', '促销优惠',
        '平均价格']
 
-
-# In[16]:
-
-
 # 删除经纬的缺失数据
-
-
-# In[17]:
-
 
 datamer.info()
 
-
-# In[18]:
-
-
 datamer=datamer.dropna(subset=['经度'])
-
-
-# In[19]:
-
 
 # 删除商家介绍数据列
 
-
-# In[20]:
-
-
 datamer=datamer.drop(columns=['商家介绍'])
-
-
-# In[21]:
-
 
 datamer=datamer.drop(columns=['省份', '城市','区域','评价标签','图片','商品'])
 #datamer=datamer.drop(columns=['新分类'])
@@ -197,26 +103,9 @@ datamer=datamer.drop(columns=['省份', '城市','区域','评价标签','图片
 
 # ##### 价格缺失数据暂时不做处理
 
-# In[22]:
-
-
-# c，参考第2课
-
-
-# In[23]:
-
-
 datamer.loc[0]['评分']
 
-
-# In[24]:
-
-
 labels=['口味','环境','服务']
-
-
-# In[25]:
-
 
 for label in labels:
     def get_value(param):
@@ -225,51 +114,23 @@ for label in labels:
                 return i['value']
     datamer[label] = datamer['评分'].apply(get_value)
 
-
-# In[26]:
-
-
 # 导出数据
-
-
-# In[79]:
-
 
 datamer.info()
 
 
 # ####  处理评论数据
 
-# In[28]:
-
-
 # 处理缺失数据
-
-
-# In[29]:
-
 
 datamer=datamer.dropna(subset=['口味'])
 
-
-# In[30]:
-
-
 a = datamer['分类'].tolist()
-
-
-# In[31]:
-
-
 
 # 保存处理后的评论
 def get_fenlei(param):
     return eval(param)[0]  
 datamer['新分类']=datamer['分类'].apply(get_fenlei)
-
-
-# In[32]:
-
 
 datamer['新分类']
 with open(r'D:\BA训练营\20200302大众点评项目\word.txt','w') as f:
@@ -282,10 +143,6 @@ with open(r'D:\BA训练营\20200302大众点评项目\word.txt','w') as f:
 # #### 2.1 Tableau 可视化
 
 # ### 对店铺数据和评论数据做可视化分析
-# 
-
-# In[33]:
-
 
 def get_level(p):
     level = p 
@@ -302,10 +159,6 @@ def get_level(p):
     else :
         return "计算出错"
 
-
-# In[34]:
-
-
 datamer['商家区间'] = datamer['商家级别'].apply(get_level)
 datamer.to_excel(r'D:\BA训练营\20200302大众点评项目\全面商家数据.xlsx')
 
@@ -313,21 +166,10 @@ datamer.to_excel(r'D:\BA训练营\20200302大众点评项目\全面商家数据.
 # #### 2.2. 使用wordArt制作词云
 # 
 # * 店铺类别词云
-# * 其他自选
-
-# In[ ]:
-
-
-
-
 
 # ## 3. 挖掘建模
 
 # ## 3.1 构建回归分析模型
-# 
-
-# In[35]:
-
 
 # 参考：
 #去除价格的缺失数据，以商家级别(50为五星)作为因变量，
@@ -335,63 +177,24 @@ datamer.to_excel(r'D:\BA训练营\20200302大众点评项目\全面商家数据.
 # 构建多元回归模型和PCA回归模型（n = 2）
 
 
-# In[36]:
-
-
 datacle = datamer[datamer['平均价格'].notnull()]
-
-
-# In[91]:
-
 
 datacle.info()
 
-
-# In[90]:
-
-
 datacle['口味'] = pd.to_numeric(datacle['口味'],errors='coerce')
-
-
-# In[92]:
-
 
 datacle['环境'] = pd.to_numeric(datacle['环境'],errors='coerce')
 
-
-# In[93]:
-
-
 datacle['服务'] = pd.to_numeric(datacle['服务'],errors='coerce')
-
-
-# In[87]:
-
 
 datacle.columns
 
-
-# In[88]:
-
-
 datacle.iloc[0]
-
-
-# In[38]:
-
 
 datacle.to_excel(r'D:\BA训练营\20200302大众点评项目\干净商家数据.xlsx')
 
-
-# In[48]:
-
-
 Yvar=datacle['商家级别']
 Xvar=datacle[['纬度', '经度','评价数','平均价格', '口味', '环境', '服务']]
-
-
-# In[94]:
-
 
 #热力图绘制
 
@@ -400,11 +203,6 @@ t=datacle[['商家级别','纬度', '经度','评价数','平均价格', '口味
 plt.figure(figsize = (10,8))
 sns.heatmap(np.abs(t.corr()),annot = True)
 plt.show()
-
-
-# In[50]:
-
-
 
 std = StandardScaler()
 Xstd = std.fit_transform(Xvar)
@@ -415,23 +213,10 @@ lm = sm.OLS(Y,X).fit()
 print('=======================多元线性回归结果=======================')
 print(lm.summary())
 
-
-# In[ ]:
-
-
 #y = 39.5+0.19*x3+0.14*x4+3.02*x5+1.67*x7
 #商家级别 = 39.5+0.19*评价数+0.14*平均价格+3.02*口味+1.67*服务
 
-
-# In[34]:
-
-
 # 回归建模
-
-
-# In[51]:
-
-
 
 pca_model = PCA(n_components = 2)#减半
 Y = Yvar.values
@@ -443,15 +228,7 @@ lm = sm.OLS(Y,x_pca).fit()
 print('=============================主成分结果=====================')
 print(lm.summary())
 
-
-# In[52]:
-
-
 np.round(pca_model.components_,2)
-
-
-# In[ ]:
-
 
 #y = 39.50+2.74*p1-0.3*p2'纬度', '经度','评价数','平均价格', '口味', '环境', '服务'
 #p1=0.01*纬度+0.13*经度+0.25*评价数+0.25*平均价格+0.53*口味+0.54*环境+0.54*服务
@@ -462,33 +239,16 @@ np.round(pca_model.components_,2)
 
 # ### 3.2 构建情感分析和LDA主题模型
 
-# * 对TOP15店铺进行情感得分和LDA主题分析（必做）
-# 
-
-# In[56]:
-
+# * 对TOP15店铺进行情感得分和LDA主题分析
 
 shops = dianping['shopname'].unique().tolist()
 shops
 
-
-# In[36]:
-
-
 dianping.info()
-
-
-# In[37]:
-
 
 for i in shops:
     uid=dianping[dianping['shopname']==i]
     print(i,'评论数量：',len(uid))
-
-
-# In[66]:
-
-
 
 def emotion(s):
     positive=0
@@ -506,10 +266,6 @@ def emotion(s):
     print('消极情绪：',str(round(negative/counts*100,0))+'%')
     print('平和情绪：',str(round(smooth/counts*100,0))+'%')
 
-
-# In[42]:
-
-
 # 对TOP15每一家店铺进行分析
 for i in shops:
     comments=dianping[dianping['shopname']==i]['评论.1']
@@ -520,68 +276,15 @@ for i in shops:
     print(i,'TOP15店铺情感分析结果：')
     emotion(a)
 
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[43]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
 # #### 2.2 LDA主题模型分析
-
-# In[70]:
-
-
-
-
-
-# In[71]:
 
 
 string=open(r'D:\BA训练营\20200302大众点评项目\stopwords.txt','r',encoding='UTF-8').read()
 filterwords=string.split('\n')
 
-
-# In[80]:
-
-
 again = [
  '海底捞火锅(牡丹园店)',
  '满恒记清真涮羊肉']
-
-
-# In[ ]:
-
 
 def word_cut(coms):
     b=[]
@@ -624,10 +327,6 @@ def get_lda(params):
             print(j,end=' ')
         print()
 
-
-# In[82]:
-
-
 for i in again:
     comments=dianping[dianping['shopname']==i]['评论.1']
     index=np.arange(len(comments))
@@ -648,10 +347,6 @@ for i in again:
     get_lda(pos)
     print(i,'消极的十个主题：')
     get_lda(neg)
-
-
-# In[74]:
-
 
 for i in shops:
     comments=dianping[dianping['shopname']==i]['评论.1']
@@ -675,46 +370,3 @@ for i in shops:
     get_lda(neg)
     print('中立的十个主题：')
     get_lda(mid)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[68]:
-
-
-
-
-
-# In[54]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
